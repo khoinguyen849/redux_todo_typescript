@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import './todo.css'
 import { useAppDispatch, useAppSelector } from './hooks'
-import { addTodo, toggleTodo, removeTodo, clearCompleted, setFilter, fetchTodos } from './todos/todosSlice'
+import { addTodo, toggleTodo, removeTodo, clearCompleted, setFilter, fetchTodosRequest } from './todos/todosSlice'
 
 function App() {
   const dispatch = useAppDispatch()
@@ -58,7 +58,7 @@ function App() {
         <button onClick={() => dispatch(clearCompleted())} disabled={completedCount === 0}>
           Clear completed ({completedCount})
         </button>
-        <button onClick={() => dispatch(fetchTodos())} disabled={status === 'loading'}>
+        <button onClick={() => dispatch(fetchTodosRequest())} disabled={status === 'loading'}>
           {status === 'loading' ? 'Loading…' : 'Load sample'}
         </button>
       </div>

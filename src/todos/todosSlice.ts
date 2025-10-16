@@ -1,4 +1,4 @@
-import { createSlice, nanoid, createAsyncThunk } from '@reduxjs/toolkit'
+import { createSlice, nanoid} from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 
 export type Todo = {
@@ -20,7 +20,7 @@ const initialState: TodosState = {
   status: 'idle',
   error: null,
 }
-
+/*
 export const fetchTodos = createAsyncThunk<Todo[]>(
   'todos/fetchTodos',
   async () => {
@@ -34,7 +34,7 @@ export const fetchTodos = createAsyncThunk<Todo[]>(
     return sample
   }
 )
-
+*/
 const todosSlice = createSlice({
   name: 'todos',
   initialState,
@@ -60,7 +60,20 @@ const todosSlice = createSlice({
     setFilter: (state, action: PayloadAction<TodosState['filter']>) => {
       state.filter = action.payload
     },
+    fetchTodosRequest: (state) => {
+      state.status = "loading";
+      state.error = null;
+    },
+    fetchTodosSuccess: (state, action: PayloadAction<Todo[]>) => {
+      state.status = "succeeded";
+      state.items = action.payload;
+    },
+    fetchTodosFailure: (state, action: PayloadAction<string>) => {
+      state.status = "failed";
+      state.error = action.payload;
+    },
   },
+  /*
   extraReducers: (builder) => {
     builder
       .addCase(fetchTodos.pending, (state) => {
@@ -76,7 +89,8 @@ const todosSlice = createSlice({
         state.error = action.error.message || 'Failed to fetch todos'
       })
   },
+  */
 })
 
-export const { addTodo, toggleTodo, removeTodo, clearCompleted, setFilter } = todosSlice.actions
+export const { fetchTodosFailure,fetchTodosRequest, fetchTodosSuccess,addTodo, toggleTodo, removeTodo, clearCompleted, setFilter } = todosSlice.actions
 export default todosSlice.reducer
