@@ -12,6 +12,12 @@ type TodosState = {
   filter: 'all' | 'active' | 'completed'
   status: 'idle' | 'loading' | 'succeeded' | 'failed'
   error: string | null
+  
+  // Timer mode state
+  timerMode: boolean
+  isTyping: boolean
+  remainingSeconds: number
+  draftResetCounter: number
 }
 
 const initialState: TodosState = {
@@ -19,6 +25,10 @@ const initialState: TodosState = {
   filter: 'all',
   status: 'idle',
   error: null,
+  timerMode: false,
+  isTyping: false,
+  remainingSeconds: 0,
+  draftResetCounter: 0,
 }
 /*
 export const fetchTodos = createAsyncThunk<Todo[]>(
@@ -60,6 +70,35 @@ const todosSlice = createSlice({
     setFilter: (state, action: PayloadAction<TodosState['filter']>) => {
       state.filter = action.payload
     },
+    // Timer mode controls
+    toggleTimerMode: (state) => {
+      state.timerMode = !state.timerMode
+      if (!state.timerMode) {
+        state.isTyping = false
+        state.remainingSeconds = 0
+      }
+    },
+    typingStarted: (state) => {
+      state.isTyping = true
+    },
+    typingStopped: (state) => {
+      state.isTyping = false
+      state.remainingSeconds = 0
+    },
+    timerStarted: (state, action: PayloadAction<number>) => {
+      state.remainingSeconds = action.payload
+    },
+    timerTick: (state) => {
+      if (state.remainingSeconds > 0) state.remainingSeconds -= 1
+    },
+    timerStopped: (state) => {
+      state.remainingSeconds = 0
+    },
+    draftResetRequested: (state) => {
+      state.draftResetCounter += 1
+      state.isTyping = false
+      state.remainingSeconds = 0
+    },
     fetchTodosRequest: (state) => {
       state.status = "loading";
       state.error = null;
@@ -92,5 +131,21 @@ const todosSlice = createSlice({
   */
 })
 
-export const { fetchTodosFailure,fetchTodosRequest, fetchTodosSuccess,addTodo, toggleTodo, removeTodo, clearCompleted, setFilter } = todosSlice.actions
+export const {
+  fetchTodosFailure,
+  fetchTodosRequest,
+  fetchTodosSuccess,
+  addTodo,
+  toggleTodo,
+  removeTodo,
+  clearCompleted,
+  setFilter,
+  toggleTimerMode,
+  typingStarted,
+  typingStopped,
+  timerStarted,
+  timerTick,
+  timerStopped,
+  draftResetRequested,
+} = todosSlice.actions
 export default todosSlice.reducer

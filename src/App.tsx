@@ -1,13 +1,29 @@
-import { useState } from 'react'
-import type { FormEvent } from 'react'
+import { useEffect, useState } from 'react'
+import type { FormEvent, ChangeEvent } from 'react'
 import './todo.css'
 import { useAppDispatch, useAppSelector } from './hooks'
-import { addTodo, toggleTodo, removeTodo, clearCompleted, setFilter, fetchTodosRequest } from './todos/todosSlice'
+import Switch from './components/Switch'
+import {
+  addTodo,
+  toggleTodo,
+  removeTodo,
+  clearCompleted,
+  setFilter,
+  fetchTodosRequest,
+  toggleTimerMode,
+  typingStarted,
+  typingStopped,
+} from './todos/todosSlice'
 
 function App() {
   const dispatch = useAppDispatch()
-  const { items, filter, status, error } = useAppSelector((s) => s.todos)
+  const { items, filter, status, error, timerMode, isTyping, remainingSeconds, draftResetCounter } = useAppSelector((s) => s.todos)
   const [title, setTitle] = useState('')
+
+  // Reset local draft when saga requests it
+  useEffect(() => {
+    setTitle('')
+  }, [draftResetCounter])
 
   const filtered = items.filter((t) =>
     filter === 'active' ? !t.completed : filter === 'completed' ? t.completed : true,
@@ -16,8 +32,26 @@ function App() {
   function onSubmit(e: FormEvent) {
     e.preventDefault()
     if (!title.trim()) return
+    if (timerMode && isTyping && remainingSeconds <= 0) {
+      // Guard if user tries to submit after time up
+      alert("You're running out of time.")
+      return
+    }
     dispatch(addTodo(title))
+    if (timerMode) dispatch(typingStopped())
     setTitle('')
+  }
+
+  function onChangeTitle(e: ChangeEvent<HTMLInputElement>) {
+    const val = e.target.value
+    setTitle(val)
+    if (!timerMode) return
+    if (!isTyping && val.trim().length > 0) {
+      dispatch(typingStarted())
+    }
+    if (isTyping && val.trim().length === 0) {
+      dispatch(typingStopped())
+    }
   }
 
   const activeCount = items.filter((t) => !t.completed).length
@@ -29,7 +63,7 @@ function App() {
       <form onSubmit={onSubmit} className="todo-form">
         <input
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={onChangeTitle}
           placeholder="What needs to be done?"
           aria-label="Todo title"
           className="todo-input"
@@ -38,6 +72,20 @@ function App() {
       </form>
 
       <div className="todo-toolbar">
+        <div className="timer-group" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <label style={{ display: 'inline-flex', gap: 6 }}>
+            <Switch
+              checked={timerMode}
+              disabled={isTyping}
+              onCheckedChange={() => dispatch(toggleTimerMode())}
+              aria-label="Toggle timer mode"
+            />
+            Timer mode
+          </label>
+          {timerMode && isTyping && (
+            <span aria-live="polite">Time left: {remainingSeconds}s</span>
+          )}
+        </div>
         <div className="filter-group">
           <button
             onClick={() => dispatch(setFilter('all'))}

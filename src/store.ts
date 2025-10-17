@@ -2,11 +2,11 @@ import { configureStore } from '@reduxjs/toolkit'
 import todosReducer from './todos/todosSlice'
 
 import createSagaMiddleware from 'redux-saga'
-import { todoSaga } from './sagas/todoSaga'
+import { todoSaga, timerSagaRoot } from './sagas/todoSaga'
 import { all } from 'redux-saga/effects'
 
 function* rootSaga(){
-  yield all([todoSaga()])
+  yield all([todoSaga(), timerSagaRoot()])
 }
 
 const sagaMiddleware = createSagaMiddleware()
